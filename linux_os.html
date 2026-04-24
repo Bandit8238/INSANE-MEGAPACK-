@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fake Linux OS Ultimate</title>
+
+<style>
+body {
+margin: 0;
+background: #0b0f0c;
+color: #00ff88;
+font-family: monospace;
+overflow: hidden;
+}
+
+/* SPLIT TERMINALS */
+#container {
+display: flex;
+height: 100vh;
+}
+
+.pane {
+flex: 1;
+border-right: 1px solid #00ff88;
+display: flex;
+flex-direction: column;
+}
+
+.output {
+flex: 1;
+padding: 10px;
+overflow-y: auto;
+white-space: pre-wrap;
+}
+
+.input {
+border: none;
+outline: none;
+padding: 10px;
+background: #0b0f0c;
+color: #00ff88;
+border-top: 1px solid #00ff88;
+}
+
+/* PACKAGE MANAGER */
+#pkgManager {
+display: none;
+position: fixed;
+top: 10%;
+left: 20%;
+width: 60%;
+height: 70%;
+background: #0b0f0c;
+border: 2px solid #00ff88;
+padding: 10px;
+overflow: hidden;
+}
+
+#pkgSearch {
+width: 100%;
+padding: 8px;
+background: black;
+border: 1px solid #00ff88;
+color: #00ff88;
+margin-bottom: 10px;
+}
+
+.pkgItem {
+display: flex;
+justify-content: space-between;
+padding: 5px;
+border-bottom: 1px solid #00ff88;
+}
+
+.pkgItem button {
+background: black;
+color: #00ff88;
+border: 1px solid #00ff88;
+}
+
+/* NANO */
+#nano {
+display: none;
+position: fixed;
+width: 100%;
+height: 100%;
+background: black;
+padding: 10px;
+}
+
+#nano textarea {
+width: 100%;
+height: 90%;
+background: black;
+color: #00ff88;
+border: none;
+outline: none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TERMINALS -->
+<div id="container">
+<div class="pane">
+<div class="output" id="leftOut"></div>
+<input class="input" id="leftIn" placeholder="left terminal" />
+</div>
+
+<div class="pane">
+<div class="output" id="rightOut"></div>
+<input class="input" id="rightIn" placeholder="right terminal" />
+</div>
+</div>
+
+<!-- PACKAGE MANAGER -->
+<div id="pkgManager">
+<h3>📦 Package Manager (APT/YUM)</h3>
+<input id="pkgSearch" placeholder="search packages..." />
+<div id="pkgList"></div>
+<div id="pkgStatus"></div>
+<button onclick="closePkg()">close</button>
+</div>
+
+<!-- NANO -->
+<div id="nano">
+<div>nano editor (fake) — Ctrl+S save | Ctrl+X exit</div>
+<textarea id="nanoText"></textarea>
+</div>
+
+<script>
+const leftOut = document.getElementById("leftOut");
+const rightOut = document.getElementById("rightOut");
+const leftIn = document.getElementById("leftIn");
+const rightIn = document.getElementById("rightIn");
+
+const pkgManager = document.getElementById("pkgManager");
+const pkgList = document.getElementById("pkgList");
+const pkgSearch = document.getElementById("pkgSearch");
+const pkgStatus = document.getElementById("pkgStatus");
+
+const nano = document.getElementById("nano");
+const nanoText = document.getElementById("nanoText");
+
+let fs = { "/file.txt": "hello" };
+let currentFile = "";
+let nanoMode = false;
+
+/* PACKAGES */
+let packages = ["python3","vim","gcc","nodejs","curl","git","nano","htop"];
+
+/* PRINT */
+function print(out, text) {
+out.innerHTML += "\n" + text;
+out.scrollTop = out.scrollHeight;
+}
+
+/* ---------------- COMMAND ENGINE ---------------- */
+function run(cmd, out) {
+let parts = cmd.split(" ");
+let c = parts[0];
+let a = parts.slice(1);
+
+/* sudo */
+if (c === "sudo") {
+print(out, "[sudo] executed: " + a.join(" "));
+return;
+}
+
+/* file ops */
+if (c === "touch") {
+fs["/" + a[0]] = "";
+print(out, "created " + a[0]);
+return;
+}
+
+if (c === "mkdir") {
+print(out, "directory created " + a[0]);
+return;
+}
+
+if (c === "rm") {
+delete fs["/" + a[0]];
+print(out, "removed " + a[0]);
+return;
+}
+
+if (c === "ls") {
+print(out, Object.keys(fs).join(" "));
+return;
+}
+
+/* nano */
+if (c === "nano") {
+currentFile = "/" + a[0];
+nano.style.display = "block";
+nanoText.value = fs[currentFile] || "";
+nanoMode = true;
+return;
+}
+
+/* install */
+if (c === "install" || c === "apt" || c === "yum") {
+installPkg(a[1], out);
+return;
+}
+
+/* launch */
+if (c === "launch") {
+print(out, "launching " + a[0]);
+return;
+}
+
+/* network */
+if (c === "ping") {
+print(out, "ping " + a[0] + " ok (simulated)");
+return;
+}
+
+if (c === "traceroute") {
+print(out, "tracing route to " + a[0]);
+return;
+}
+
+if (c === "pkg") {
+openPkg();
+return;
+}
+
+print(out, "command not found");
+}
+
+/* ---------------- PACKAGE MANAGER ---------------- */
+function openPkg() {
+pkgManager.style.display = "block";
+renderPkgs();
+}
+
+function closePkg() {
+pkgManager.style.display = "none";
+}
+
+function renderPkgs(filter="") {
+pkgList.innerHTML = "";
+
+packages
+.filter(p => p.includes(filter))
+.forEach(pkg => {
+let div = document.createElement("div");
+div.className = "pkgItem";
+
+div.innerHTML = `
+${pkg}
+<button onclick="installPkg('${pkg}')">install</button>
+`;
+
+pkgList.appendChild(div);
+});
+}
+
+function installPkg(pkg, out) {
+let progress = 0;
+
+let interval = setInterval(() => {
+progress += Math.random()*25;
+
+if (out) print(out, "installing " + pkg + " " + Math.floor(progress) + "%");
+
+pkgStatus.innerText = "Installing " + pkg + " [" + Math.floor(progress) + "%]";
+
+if (progress >= 100) {
+clearInterval(interval);
+pkgStatus.innerText = pkg + " installed ✓";
+}
+}, 150);
+}
+
+pkgSearch.addEventListener("input", e => {
+renderPkgs(e.target.value);
+});
+
+/* ---------------- INPUT ---------------- */
+leftIn.addEventListener("keydown", e => {
+if (e.key === "Enter") {
+print(leftOut, "> " + leftIn.value);
+run(leftIn.value, leftOut);
+leftIn.value = "";
+}
+});
+
+rightIn.addEventListener("keydown", e => {
+if (e.key === "Enter") {
+print(rightOut, "> " + rightIn.value);
+run(rightIn.value, rightOut);
+rightIn.value = "";
+}
+});
+
+/* ---------------- NANO CONTROLS ---------------- */
+document.addEventListener("keydown", e => {
+if (!nanoMode) return;
+
+if (e.ctrlKey && e.key === "s") {
+fs[currentFile] = nanoText.value;
+alert("saved");
+}
+
+if (e.ctrlKey && e.key === "x") {
+nano.style.display = "none";
+nanoMode = false;
+}
+});
+</script>
+
+</body>
+</html>
