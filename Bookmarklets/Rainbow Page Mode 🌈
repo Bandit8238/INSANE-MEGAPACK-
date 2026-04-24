@@ -1,0 +1,1 @@
+javascript:(()=>{let i=0;setInterval(()=>{document.body.style.filter=`hue-rotate(${i}deg)`;i+=10;},100);})()
