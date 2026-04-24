@@ -1,0 +1,212 @@
+<style>
+#hackMenu {
+    position: fixed;
+    display: none;
+    background: #0b0f0c;
+    border: 1px solid #00ff88;
+    color: #00ff88;
+    font-family: monospace;
+    z-index: 999999;
+    width: 200px;
+}
+
+.hackItem {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.hackItem:hover {
+    background: #00ff88;
+    color: black;
+}
+
+#inspectPanel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background: #111;
+    color: #00ff88;
+    font-family: monospace;
+    z-index: 999998;
+    padding: 10px;
+    overflow: auto;
+    display: none;
+    border-left: 2px solid #00ff88;
+}
+
+#highlightBox {
+    position: fixed;
+    border: 2px solid red;
+    pointer-events: none;
+    z-index: 999997;
+}
+</style>
+
+<div id="hackMenu"></div>
+<div id="inspectPanel">
+    <h3>Hacker Inspect Tool</h3>
+    <pre id="inspectOut"></pre>
+</div>
+<div id="highlightBox"></div>
+
+<script>
+let selectedElement = null;
+
+const menu = document.getElementById("hackMenu");
+const panel = document.getElementById("inspectPanel");
+const out = document.getElementById("inspectOut");
+const box = document.getElementById("highlightBox");
+
+/* ---------------- RIGHT CLICK MENU ---------------- */
+document.addEventListener("contextmenu", e => {
+    e.preventDefault();
+    selectedElement = e.target;
+
+    menu.style.display = "block";
+    menu.style.left = e.pageX + "px";
+    menu.style.top = e.pageY + "px";
+
+    menu.innerHTML = "";
+
+    buildMenu();
+});
+
+/* hide menu */
+document.addEventListener("click", () => {
+    menu.style.display = "none";
+});
+
+/* ---------------- MENU SYSTEM (100+ COMMANDS VIA GENERATOR) ---------------- */
+function buildMenu() {
+    const baseActions = [
+        "Inspect Element",
+        "Highlight Element",
+        "Copy HTML",
+        "Edit Text",
+        "Delete Element",
+        "Hide Element",
+        "Show Inspector",
+        "Duplicate Element",
+        "Toggle Glow",
+        "Fake Explode Element"
+    ];
+
+    // generate “100+ actions dynamically”
+    for (let i = 0; i < 100; i++) {
+        baseActions.push("Tool Action #" + (i + 1));
+    }
+
+    baseActions.forEach(action => {
+        let div = document.createElement("div");
+        div.className = "hackItem";
+        div.innerText = action;
+
+        div.onclick = () => runAction(action);
+
+        menu.appendChild(div);
+    });
+}
+
+/* ---------------- ACTION ENGINE ---------------- */
+function runAction(action) {
+
+    if (!selectedElement) return;
+
+    switch(action) {
+
+        case "Inspect Element":
+            panel.style.display = "block";
+            showInspect();
+            break;
+
+        case "Highlight Element":
+            highlight(selectedElement);
+            break;
+
+        case "Copy HTML":
+            navigator.clipboard.writeText(selectedElement.outerHTML);
+            alert("HTML copied!");
+            break;
+
+        case "Edit Text":
+            let newText = prompt("Edit text:", selectedElement.innerText);
+            if (newText !== null) selectedElement.innerText = newText;
+            break;
+
+        case "Delete Element":
+            selectedElement.remove();
+            break;
+
+        case "Hide Element":
+            selectedElement.style.display = "none";
+            break;
+
+        case "Show Inspector":
+            panel.style.display = "block";
+            showInspect();
+            break;
+
+        case "Duplicate Element":
+            let clone = selectedElement.cloneNode(true);
+            selectedElement.parentNode.appendChild(clone);
+            break;
+
+        case "Toggle Glow":
+            selectedElement.style.boxShadow =
+                selectedElement.style.boxShadow
+                    ? ""
+                    : "0 0 10px #00ff88";
+            break;
+
+        case "Fake Explode Element":
+            selectedElement.style.transition = "all 0.5s";
+            selectedElement.style.transform = "scale(0)";
+            setTimeout(()=>selectedElement.remove(), 500);
+            break;
+
+        default:
+            console.log(action + " executed (simulated tool)");
+    }
+}
+
+/* ---------------- INSPECTOR ---------------- */
+function showInspect() {
+    if (!selectedElement) return;
+
+    let styles = window.getComputedStyle(selectedElement);
+
+    out.textContent =
+`TAG: ${selectedElement.tagName}
+
+HTML:
+${selectedElement.outerHTML}
+
+TEXT:
+${selectedElement.innerText}
+
+STYLE:
+color: ${styles.color}
+background: ${styles.backgroundColor}
+display: ${styles.display}
+font-size: ${styles.fontSize}
+`;
+}
+
+/* ---------------- HIGHLIGHT ---------------- */
+function highlight(el) {
+    let rect = el.getBoundingClientRect();
+
+    box.style.display = "block";
+    box.style.left = rect.left + "px";
+    box.style.top = rect.top + "px";
+    box.style.width = rect.width + "px";
+    box.style.height = rect.height + "px";
+}
+
+/* update highlight on scroll */
+window.addEventListener("scroll", () => {
+    box.style.display = "none";
+});
+</script>
