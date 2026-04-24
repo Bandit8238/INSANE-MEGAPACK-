@@ -1,0 +1,1 @@
+javascript:(()=>{let id=window.setTimeout(()=>{},0);while(id--){clearTimeout(id);}})()
