@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SECURE OS TERMINAL</title>
+
+<style>
+body {
+margin: 0;
+background: black;
+color: #00ff00;
+font-family: monospace;
+overflow: hidden;
+}
+
+/* LOGIN */
+#login {
+display: flex;
+height: 100vh;
+justify-content: center;
+align-items: center;
+flex-direction: column;
+}
+
+#login input {
+background: black;
+border: 1px solid #00ff00;
+color: #00ff00;
+padding: 10px;
+font-size: 16px;
+outline: none;
+}
+
+/* BOOT */
+#boot, #terminal {
+padding: 20px;
+white-space: pre-wrap;
+}
+
+#terminal {
+display: none;
+height: 85vh;
+overflow-y: auto;
+}
+
+/* INPUT BAR */
+#inputBar {
+display: none;
+position: fixed;
+bottom: 0;
+width: 100%;
+}
+
+#inputBar input {
+width: 100%;
+padding: 10px;
+background: black;
+border: none;
+color: #00ff00;
+outline: none;
+}
+
+/* DECRYPT SCREEN */
+#decrypt {
+display: none;
+padding: 20px;
+}
+
+.bar {
+width: 100%;
+border: 1px solid #00ff00;
+margin: 5px 0;
+}
+
+.fill {
+height: 10px;
+width: 0%;
+background: #00ff00;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+<h2>SECURE ACCESS REQUIRED</h2>
+<input id="pass" placeholder="Enter password..." />
+</div>
+
+<!-- DECRYPT -->
+<div id="decrypt"></div>
+
+<!-- BOOT -->
+<div id="boot"></div>
+
+<!-- TERMINAL -->
+<div id="terminal"></div>
+
+<div id="inputBar">
+<input id="cmd" placeholder="type command..." autocomplete="off" />
+</div>
+
+<script>
+const login = document.getElementById("login");
+const pass = document.getElementById("pass");
+
+const decrypt = document.getElementById("decrypt");
+const boot = document.getElementById("boot");
+const terminal = document.getElementById("terminal");
+
+const cmd = document.getElementById("cmd");
+const inputBar = document.getElementById("inputBar");
+
+let fakeInterval;
+
+/* ---------------- LOGIN ---------------- */
+pass.addEventListener("keydown", (e) => {
+if (e.key === "Enter") {
+if (pass.value === "Zechy2025") {
+login.style.display = "none";
+startDecrypt();
+} else {
+pass.value = "";
+pass.placeholder = "ACCESS DENIED";
+}
+}
+});
+
+/* ---------------- DECRYPT ---------------- */
+function startDecrypt() {
+decrypt.style.display = "block";
+
+let files = [
+"system.dll",
+"kernel.sys",
+"user.dat",
+"security.lock",
+"config.bak"
+];
+
+let i = 0;
+
+let interval = setInterval(() => {
+if (i < files.length) {
+let container = document.createElement("div");
+container.innerHTML = files[i];
+
+let bar = document.createElement("div");
+bar.className = "bar";
+
+let fill = document.createElement("div");
+fill.className = "fill";
+
+bar.appendChild(fill);
+decrypt.appendChild(container);
+decrypt.appendChild(bar);
+
+let progress = 0;
+
+let anim = setInterval(() => {
+progress += Math.random() * 20;
+fill.style.width = progress + "%";
+
+if (progress >= 100) {
+clearInterval(anim);
+}
+}, 100);
+
+i++;
+} else {
+clearInterval(interval);
+
+setTimeout(() => {
+decrypt.style.display = "none";
+startBoot();
+}, 1500);
+}
+}, 400);
+}
+
+/* ---------------- BOOT ---------------- */
+function startBoot() {
+const lines = [
+"integrating desktop......",
+"processing...........",
+"loading secure kernel.....",
+"decrypting modules.....",
+"bypassing restrictions.....",
+"system ready ✓"
+];
+
+let i = 0;
+
+let interval = setInterval(() => {
+if (i < lines.length) {
+boot.innerHTML += lines[i] + "\n";
+i++;
+} else {
+clearInterval(interval);
+
+setTimeout(() => {
+boot.style.display = "none";
+terminal.style.display = "block";
+inputBar.style.display = "block";
+
+cmd.focus();
+
+terminal.innerHTML =
+"SECURE_TERMINAL v5.0 ONLINE\nType 'help' for commands.\n";
+}, 600);
+}
+}, 400);
+}
+
+/* ---------------- COMMAND SYSTEM (500+ FAKE COMMANDS) ---------------- */
+const baseCommands = {
+help: () => {
+print("Basic commands:");
+print("scan | matrix | stop | clear | decrypt");
+print("system info | ping | trace | override");
+},
+
+scan: () => fakeScan(),
+matrix: () => matrixMode(),
+stop: () => { clearInterval(fakeInterval); print("Stopped."); },
+clear: () => terminal.innerHTML = "",
+decrypt: () => fakeDecrypt()
+};
+
+// fake “500+ commands” generator system
+function fakeCommandResponse(cmd) {
+const responses = [
+"ACCESSING NODE...",
+"RUNNING MODULE...",
+"OVERRIDING FIREWALL...",
+"PACKET SENT...",
+"ERROR: PERMISSION LIMITED (SIMULATION)",
+"TRACE COMPLETE",
+"EXECUTED SUCCESSFULLY",
+"UNKNOWN SYSTEM RESPONSE"
+];
+return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function executeCommand(input) {
+if (baseCommands[input]) {
+baseCommands[input]();
+} else {
+// simulate "hundreds of commands"
+print(fakeCommandResponse(input));
+}
+}
+
+/* ---------------- FEATURES ---------------- */
+function print(text) {
+terminal.innerHTML += "\n" + text;
+terminal.scrollTop = terminal.scrollHeight;
+}
+
+function fakeScan() {
+let count = 0;
+fakeInterval = setInterval(() => {
+print("Scanning: " + Math.random().toString(16).slice(2, 10));
+count++;
+if (count > 20) {
+clearInterval(fakeInterval);
+print("Scan complete.");
+}
+}, 100);
+}
+
+function matrixMode() {
+let chars = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&";
+fakeInterval = setInterval(() => {
+let line = "";
+for (let i = 0; i < 80; i++) {
+line += chars[Math.floor(Math.random() * chars.length)];
+}
+print(line);
+}, 60);
+}
+
+function fakeDecrypt() {
+print("decrypting hidden files...");
+let count = 0;
+
+fakeInterval = setInterval(() => {
+print("decrypting sector " + Math.floor(Math.random()*9999));
+count++;
+if (count > 15) {
+clearInterval(fakeInterval);
+print("decryption complete.");
+}
+}, 120);
+}
+
+/* ---------------- INPUT ---------------- */
+cmd.addEventListener("keydown", (e) => {
+if (e.key === "Enter") {
+let value = cmd.value.trim();
+print("> " + value);
+cmd.value = "";
+
+executeCommand(value);
+}
+});
+</script>
+
+</body>
+</html>
