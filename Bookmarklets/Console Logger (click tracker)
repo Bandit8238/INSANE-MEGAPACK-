@@ -1,0 +1,1 @@
+javascript:(()=>{document.addEventListener('click',e=>console.log('Clicked:',e.target));alert('Click logger ON');})()
