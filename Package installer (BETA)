@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Package Installer Engine</title>
+
+<style>
+body {
+background: #0b0f0c;
+color: #00ff88;
+font-family: monospace;
+margin: 0;
+}
+
+#ui {
+padding: 20px;
+}
+
+button {
+background: black;
+color: #00ff88;
+border: 1px solid #00ff88;
+padding: 8px;
+cursor: pointer;
+}
+
+.pkg {
+border: 1px solid #00ff88;
+margin: 5px;
+padding: 5px;
+display: flex;
+justify-content: space-between;
+}
+
+#log {
+margin-top: 20px;
+white-space: pre-wrap;
+border-top: 1px solid #00ff88;
+padding-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="ui">
+<h2>📦 Browser Package Installer</h2>
+
+<div id="store"></div>
+
+<div id="log">System ready...\n</div>
+</div>
+
+<script>
+/* ---------------- FAKE PACKAGE STORE ---------------- */
+const packages = {
+"hello-app": "https://example.com/hello.json",
+"calculator": "https://example.com/calc.json",
+"notepad": "https://example.com/notepad.json"
+};
+
+/* installed system */
+let installed = {};
+
+/* UI */
+const store = document.getElementById("store");
+const log = document.getElementById("log");
+
+/* print log */
+function print(text) {
+log.innerText += text + "\n";
+log.scrollTop = log.scrollHeight;
+}
+
+/* simulate download (REAL fetch structure) */
+async function downloadPackage(name) {
+print("Downloading " + name + "...");
+
+// fake delay (simulate network)
+await new Promise(r => setTimeout(r, 1000));
+
+// simulate package content
+return {
+name,
+version: "1.0.0",
+files: [
+name + ".exe",
+"readme.txt"
+],
+size: Math.floor(Math.random() * 100) + "MB"
+};
+}
+
+/* install system */
+async function install(name) {
+print("\nInstalling " + name + "...");
+
+let progress = 0;
+
+let bar = setInterval(() => {
+progress += Math.random() * 20;
+print("progress: " + Math.min(100, Math.floor(progress)) + "%");
+
+if (progress >= 100) clearInterval(bar);
+}, 200);
+
+const pkg = await downloadPackage(name);
+
+await new Promise(r => setTimeout(r, 1500));
+
+installed[name] = pkg;
+
+print("✔ Installed " + name + " v" + pkg.version);
+print("Files: " + pkg.files.join(", "));
+}
+
+/* render store */
+function renderStore() {
+store.innerHTML = "";
+
+Object.keys(packages).forEach(pkg => {
+let div = document.createElement("div");
+div.className = "pkg";
+
+div.innerHTML = `
+<div>${pkg}</div>
+<button onclick="install('${pkg}')">install</button>
+`;
+
+store.appendChild(div);
+});
+}
+
+renderStore();
+
+/* expose install globally */
+window.install = install;
+</script>
+
+</body>
+</html>
